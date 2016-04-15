@@ -2,6 +2,9 @@
 # Software Carpentry Workshop April 14, 2016
 #
 #####################################
+detach() # will get rid of/clear all your working history
+rm(list=ls()) # also gets rid of things
+
 
 # changing work directory
 setwd('data/') # I set the home directory when I created the project
@@ -73,3 +76,127 @@ plot(max_day_inf)
 # calculating min of each col = each day 
 min_day_inf <- apply(dat, 2, min)
 plot(min_day_inf)
+
+################################################
+# Creating functions;
+###############################################
+
+?str
+str(read.csv) # tells you the structure of a cuntion (e.g. all the arguments it will take)
+
+temp <-67
+## Fahrenheit to Kelvin
+fahr_to_kelvin<-function(temp){
+  kelvin <- ((temp-32)*(5/9))+273.1
+  return(kelvin)
+}
+fahr_to_kelvin(temp)
+fahr_to_kelvin(59)
+fahr_to_kelvin(82)
+
+kelvin_to_celsius <- function(temp){
+  celsius <- temp - 273.15
+  return(celsius)
+}
+
+kelvin_to_celsius(82)
+
+fahr_to_celsius <- function(temp){
+  temp_k <- fahr_to_kelvin(temp)
+  result <- kelvin_to_celsius(temp_k)
+  return(result)
+}
+
+fahr_to_celsius(82)
+fahr_to_celsius(76)
+fahr_to_celsius(78)
+fahr_to_celsius(32)
+
+
+# Write a function called fence that takes two vectors as arguments, called original and wrapper, and returns a new vector that has the wrapper vector at the beginning and end of the original
+original <- c(1, 2, 3)
+wrapper <- c(5, 6, 7)
+
+fence <- function(original, wrapper){
+  newvector <- c(wrapper, original, wrapper)
+  return(newvector)
+}
+fence(original, wrapper)
+
+best_practice <- c("Write", "programs", "for", "people", "not", "computers")
+asterisk <- "***"  # R interprets a variable with a single value as a vector with one element.
+fence(best_practice, asterisk)
+
+outside <- function(vector){
+  outvector <- c(vector[1], vector[length(vector)]
+  return(outvector)
+}
+
+dry_principle <- c("Don't", "repeat", "yourself", "or", "others")
+outside(dry_principle)
+
+## not quite working
+
+################
+# For loops
+###################
+
+analyze <- function(filename) {
+  # Plots the average, min, and max inflammation over time.
+  # Input is character string of a csv file.
+  dat <- read.csv(file = filename, header = FALSE)
+  avg_day_inflammation <- apply(dat, 2, mean)
+  plot(avg_day_inflammation)
+  max_day_inflammation <- apply(dat, 2, max)
+  plot(max_day_inflammation)
+  min_day_inflammation <- apply(dat, 2, min)
+  plot(min_day_inflammation)
+}
+
+analyze("/data/inflammation-01.csv")
+
+# the crappy way, without a for loop
+best_practice <- c("let", "the", "computer", "do", "the", "work")
+best_practice
+print_words <- function(sentence){
+  # function prints a sentence
+  print(sentence[1])
+  print(sentence[2])
+  print(sentence[3])
+  print(sentence[4])
+  print(sentence[5])
+  print(sentence[6])
+}
+
+print_words(best_practice)
+print_words(best_practice[-6])
+
+# the good way, with a for loop
+print_words <- function(sentence){
+  for(word in sentence){
+    print(word)
+  }
+}
+
+print_words(best_practice)
+print_words(best_practice[-6])
+
+# e.g.
+# for(variable in collection){
+#     do stuff with variable
+#}
+
+len <- 0
+vowels <- c("a", "e", "i", "o", "u")
+for(v in vowels){
+  print(len)
+  len <- len +1
+}
+len
+v
+
+letter <- "z"
+for(letter in c("a", "b", "c")){
+  print(letter)
+}
+letter

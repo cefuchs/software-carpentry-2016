@@ -5,6 +5,7 @@
 detach() # will get rid of/clear all your working history
 rm(list=ls()) # also gets rid of things
 
+## !!!! IMPORTANT !!!! In read.csv, na.strings = allows you to assign what strings equal "NA." So, NA is NA, but so is w/e you put in there;; e.g. a single period or, maybe !#DIV/0....
 
 # changing work directory
 setwd('data/') # I set the home directory when I created the project
@@ -200,3 +201,89 @@ for(letter in c("a", "b", "c")){
   print(letter)
 }
 letter
+
+####################################################
+# Day 2 - more complex datasets, etc.
+####################################################
+install.packages("dplyr")
+library(dplyr)
+
+dat <- mammal_stats <- read.csv("C:/Users/Cory/Desktop/software-carpentry-2016/software-carpentry-2016/data-files/mammal_stats.csv")
+
+head(dat)
+glimpse(dat) # in dplyr. shows each col, its data type, and the first few rows of contained data
+attach(dat)
+
+# choosing parts of a datasheet;
+# columns; select()
+select(dat, order, species) # to output only certain columns of the datset
+select(dat, starts_with('adult') # to output cols whose names begin with "adult"
+# rows; filter()
+filter(dat, order=="Carnviora" & adult_body_mass_g<5000) # output all rows that are carnivores, under 5000g.
+# to sort by something; arrange()
+arrange(dat, adult_body_mass_g)
+arrange(dat, desc(adult_body_mass_g)) # to sort by adult body mass in DESCENDING order
+arrange()
+
+dat1 <- arrange(dat, desc(adult_body_mass_g))
+head(dat1)
+
+# find the average mass for each order;
+# 1. separate data by order
+# 2. find average of each
+a <- group_by(dat, order)
+b <- summarize(a, mean_mass = mean(adult_body_mass_g, na.rm=T))
+c <- mutate(a, mean_mass =mean(adult_body_mass_g, na.rm=T)) 
+d <- summarize(a, mean_mass =mean(adult_body_mass_g, na.rm=T), sd_mass = sd(adult_body_mass_g, na.rm=T)) # this does the summarize function, but also includes all other data in the rows?!
+
+## summarize = collapses the data to the category chosen and find the mean (or other function)
+## mutate = also runs the function by the category, BUT applies the resultant values to every row/individual in the category. E.g. in this example, we found the average adult mass for a given order, and every species within an order gets that average added to a new column. So every different individual antelope will have the same, mean average adult body mass for Artiodactyls entered in a new col.
+
+e <- mutate(a, mean_mass = mean(adult_body_mass_g, na.rm = T),
+           norm_mass = adult_body_mass_g / mean_mass) # caluclating how much bigger a given row(animal) is than the average size for its order
+
+a <- group_by(dat, order)
+e <- mutate(group_by(dat, order), mean_mass = mean(adult_body_mass_g, na.rm = T),
+            norm_mass = adult_body_mass_g / mean_mass) # will also work, but gets VERY. CONFUSING. Very fast.
+
+# Instead of doing that, or making a variable 'a' in-between, you can pipe! Take output of one function, funnel it into a second...
+# in R, pipe is "%>%" instead of "|"
+e <- dat %>%
+  group_by(order) %>%
+  mutate(mean_mass = mean(adult_body_mass_g, na.rm=T))
+# Group data by order, then calculate each order's avg adult mass and add that value to each row/individual in a new column names mean_mass
+
+# lets group by order, find mean mass, find normalized mass, and then group by normalized mass;
+f <- dat %>%
+  group_by(order) %>%
+  mutate(mean_mass = mean(adult_body_mass_g, na.rm = T), norm_mass = adult_body_mass_g / mean_mass) %>%
+  arrange(desc(norm_mass))
+
+## Exercises!
+# find order with the most and least species
+order_most_species  <- dat %>%
+  group_by(order) %>%
+  summarize(num_spp = length(species)) %>%
+  arrange(desc(num_spp))
+# find greatest and smallest size range
+order_massrange  <- dat %>%
+  group_by(order) %>%
+  summarize(max_mass = max(adult_body_mass_g, na.rm=T), min_mass = min(adult_body_mass_g, na.rm=T), mass_range = max_mass - min_mass) %>%
+  arrange(desc(mass_range))
+
+## Which species of carnivore has the largest body length to body mass ratio? (Hint: that's adult_head_body_len_mm / adult_body_mass_g')
+# for JUST that information
+order_lmratio  <- dat %>%
+  filter(order=="Carnivora") %>%
+  group_by(species) %>%
+  summarize(l_to_m = adult_head_body_len_mm / adult_body_mass_g) %>%
+  arrange(desc(l_to_m))%>%
+  filter(l_to_m!="NA")
+
+order_lmratio_2 <- dat %>%
+  filter(order=="Carnivora") %>%
+#   group_by(order) %>%
+  mutate(l_to_m = adult_head_body_len_mm / adult_body_mass_g) %>%
+  arrange(desc(l_to_m))%>%
+  filter(l_to_m!="NA")
+

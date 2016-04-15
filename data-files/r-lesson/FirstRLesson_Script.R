@@ -287,3 +287,110 @@ order_lmratio_2 <- dat %>%
   arrange(desc(l_to_m))%>%
   filter(l_to_m!="NA")
 
+
+############################################
+# Plotting and ggplot!
+############################################
+# getwd()
+library(dplyr)
+library(ggplot2)
+
+mammals <- read.csv("C:/Users/Cory/Desktop/software-carpentry-2016/software-carpentry-2016/data-files/mammal_stats.csv", header=TRUE)
+attach(mammals)
+glimpse(mammals)
+
+# stock plot;
+plot(adult_head_body_len_mm~adult_body_mass_g, data=mammals)
+# default ggplot;
+ggplot(data=mammals, aes(x=adult_body_mass_g, y=adult_head_body_len_mm)) + 
+  geom_point(size=3, aes(color=litter_size))+
+  scale_x_log10() # makes the x-axis on a log scale
+
+ggplot(mammals, aes(adult_body_mass_g))+
+  geom_histogram()+
+  scale_x_log10()
+
+ggplot(mammals, aes(adult_body_mass_g))+
+  geom_histogram()+
+#   scale_x_log10()+
+  facet_wrap(~order)
+
+# labeling categorical data
+mammals$RangeCategory[mammals$home_range_km2 <= 0.01] <- "micro_machines"
+mammals$RangeCategory[mammals$home_range_km2 > 0.01 & mammals$home_range_km2 <= 1] <- "homebodies"
+mammals$RangeCategory[mammals$home_range_km2 > 0.1 & mammals$home_range_km2 <= 10] <- "strollers"
+mammals$RangeCategory[mammals$home_range_km2 > 10 & mammals$home_range_km2 <= 100] <- "roamers"
+mammals$RangeCategory[mammals$home_range_km2 > 100 & mammals$home_range_km2 <= 1000] <- "free_agents"
+mammals$RangeCategory[mammals$home_range_km2 > 1000] <- "transcendentalists"
+
+## And subsetting out by orders
+OrderSubset<-filter(mammals, order == "Rodentia" | order == "Cetacea" | order=="Primates" | order=="Carnivora") 
+# assigning the order we want these to display in (manually making it )
+OrderSubset$RangeCategory <- factor(OrderSubset$RangeCategory, levels = c("micro_machines", "homebodies", "strollers", "roamers", "free_agents", "transcendentalists"))
+# again assigning the order we want Order to display
+OrderSubset$order <- factor(OrderSubset$order, levels = c("Rodentia", "Carnivora", "Primates", "Cetacea"))
+
+ggplot(OrderSubset, aes(x=adult_body_mass_g))+
+  geom_histogram(aes(fill=order))+
+  scale_x_log10()+
+  facet_grid(RangeCategory~order, scales="free")
+
+ggplot(OrderSubset, aes(order, home_range_km2))+
+  geom_violin(aes(fill=order))+
+#   scale_x_log10()+
+  facet_grid(RangeCategory~order, scales="free")
+
+#####################################
+# Statistics functions in ggplot!!
+#####################################
+
+ggplot(OrderSubset, aes(adult_body_mass_g, y=litter_size))+
+  geom_point(aes(fill=order))+
+  scale_x_log10()+
+  facet_grid(RangeCategory~order, scales = "free")+
+  geom_smooth(method=lm)
+
+ggplot(OrderSubset, aes(adult_body_mass_g))+
+  geom_histogram(aes(fill=order))+
+  scale_x_log10()+
+  facet_grid(RangeCategory~order, scales = "free")+
+  theme(legend.key=element_rect(fill=NA),
+        legend.position="bottom",
+        axis.title=element_text(angle=0, size=18, face="bold"),
+        legend.text=element_text(angle=0, size=12, face="bold"),
+        panel.background=element_rect(fill=NA))
+    )
+
+ggplot(OrderSubset, aes(adult_body_mass_g))+
+  geom_histogram(aes(fill=order))+
+  scale_x_log10()+
+  facet_grid(RangeCategory~order, scales = "free")+
+  theme_bw()+
+  theme(legend.key=element_rect(fill=NA),
+        legend.position="bottom",
+        axis.title=element_text(angle=0, size=18, face="bold"),
+        legend.text=element_text(angle=0, size=12, face="bold"),
+        panel.background=element_rect(fill=NA))
+  )
+
+## You can play forever with themes -- but there are lots of people who already have!
+# Let's use a Wes Anderson-themed color pallete/theme package:
+
+install.packages("wesanderson")
+library(wesanderson)
+wes_palette("Royal1")
+wes_palette("FantasticFox")
+wes_palette("Zissou") # omg.
+
+
+ggplot(data=OrderSubset, aes(x=adult_body_mass_g))+
+  geom_histogram(aes(fill=order), color="black", size=0.25)+
+  scale_x_log10()+
+  facet_grid(RangeCategory~order, scales="free")+
+  scale_fill_manual(values = wes_palette("Royal1")) + 
+  theme_bw()+
+  theme(legend.key=element_rect(fill=NA),
+        legend.position="bottom",
+        axis.title=element_text(angle=0, size=18, face="bold"),
+        legend.text=element_text(angle=0, size=12, face="bold"),
+        panel.background=element_rect(fill=NA))
